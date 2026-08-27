@@ -6,6 +6,7 @@ import pytest
 
 
 def periodic_cloud(dim):
+    # Seeded cloud with a pair whose shortest edge crosses the periodic boundary.
     n = 40 if dim == 2 else 250
     points = np.random.default_rng(700 + dim).random((n, dim))
     points[0] = [0.01, 0.5] if dim == 2 else [0.01, 0.5, 0.5]
@@ -14,6 +15,7 @@ def periodic_cloud(dim):
 
 
 def simplex_set(arrays):
+    # Compare Delaunay outputs independently of their per-dimension ordering.
     return {tuple(int(v) for v in row) for array in arrays for row in np.sort(array, axis=1)}
 
 

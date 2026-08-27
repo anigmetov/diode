@@ -393,6 +393,7 @@ struct AddSimplexArraysNoVal
 
 struct AddPeriodicSimplexLiftsArrays
 {
+    // Pack aligned simplex vertex ids and lattice offsets into flat NumPy buffers.
     using Verts = std::array<std::vector<std::int64_t>, 4>;
     using Offsets = std::array<std::vector<std::int64_t>, 4>;
     Verts* verts;
@@ -525,6 +526,7 @@ void check_periodic_lift_points(const ArrayWrapper<T>& points,
                                 const std::vector<double>& to_,
                                 std::size_t dim)
 {
+    // Require the unique domain representative assumed by the lift exporter.
     for (std::size_t i = 0; i < points.size(); ++i) {
         for (std::size_t axis = 0; axis < dim; ++axis) {
             double value = static_cast<double>(points(i, axis));
@@ -541,6 +543,7 @@ void run_periodic_delaunay_lifts_traversal(py::array a, bool exact,
                                            std::vector<double> from_, std::vector<double> to_,
                                            const Cb& cb)
 {
+    // Validate and dispatch the 2D/3D periodic lift traversal by dtype and kernel.
     if (a.ndim() != 2)
         throw std::runtime_error("Unknown input dimension: can only process 2D arrays");
     auto cols = a.shape()[1];
@@ -591,6 +594,7 @@ py::object
 fill_periodic_delaunay_lifts_arrays(py::array a, bool exact,
                                     std::vector<double> bbox_min, std::vector<double> bbox_max)
 {
+    // Materialize the callback stream as parallel per-dimension NumPy arrays.
     AddPeriodicSimplexLiftsArrays::Verts verts;
     AddPeriodicSimplexLiftsArrays::Offsets offsets;
     run_periodic_delaunay_lifts_traversal(

@@ -14,6 +14,7 @@ namespace detail
 template<std::size_t N>
 struct UnsignedArrayHash
 {
+    // Hash fixed-size simplex vertex tuples for the periodic-lift lookup tables.
     std::size_t operator()(const std::array<unsigned, N>& values) const
     {
         std::size_t hash = 0;
@@ -32,6 +33,11 @@ void emit_periodic_lift(
                            UnsignedArrayHash<N>>& seen,
         const SimplexCallback& add_simplex)
 {
+    // Canonicalize CGAL's offset-dependent simplex occurrence, retaining its
+    // relative lattice placement and rejecting incompatible duplicate lifts.
+    // A preceding one-sheet conversion makes each canonical simplex unique;
+    // `seen` is therefore an invariant check, not a duplicate-removal pass.
+    // Repeated tuples with matching offsets also fail that uniqueness invariant.
     std::array<std::size_t, N> order;
     for (std::size_t i = 0; i < N; ++i)
         order[i] = i;
@@ -2407,6 +2413,11 @@ fill_periodic_delaunay2d_lifts(const Points& points, const SimplexCallback& add_
     for (unsigned i = 0; i < points.size(); ++i)
         point_map[pdt.insert(Point(points(i, 0), points(i, 1)))] = i;
 
+    // CGAL reports periodic offsets only after this conversion to a finite
+    // fundamental-domain traversal. is_triangulation_in_1_sheet() certifies
+    // that the same periodic complex is valid in one sheet; conversion removes
+    // CGAL's 9-sheet replicas, so the iterators below yield one representative
+    // of each simplex without application-level deduplication.
     if (pdt.is_triangulation_in_1_sheet())
         pdt.convert_to_1_sheeted_covering();
     else
@@ -2579,6 +2590,11 @@ fill_periodic_delaunay_lifts(const Points& points, const SimplexCallback& add_si
             vertex->info() = i;
     }
 
+    // CGAL's one-sheet covering exposes the lattice offsets for each simplex
+    // occurrence while keeping the traversal finite. The predicate certifies
+    // that this is a valid simplicial complex; conversion removes the 27-sheet
+    // replicas, leaving one stored representative per simplex for the iterators
+    // below, without application-level deduplication.
     if (pdt.is_triangulation_in_1_sheet())
         pdt.convert_to_1_sheeted_covering();
     else
